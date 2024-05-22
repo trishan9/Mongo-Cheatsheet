@@ -1,0 +1,79 @@
+Clusters -> Databases -> Collections -> Documents
+
+// <==================================Basic Commands=================================>
+show dbs
+use <dbName> // creates new database if doesn't exist
+cls // clear skin
+db // current database
+show collections // all collections(tables)
+db.dropDatabase() // drops the currently used database
+
+// <==================================Insert Commands=================================>
+db.users.insertOne({name: "Trishan Wagle"}) // automatically creates users collections and insert the data
+db.users.insertOne({name: "John Doe", age: 18, address: {country: "Nepal", city: "Kathmandu"}, hobbies: ["Reading", "Singing"]}) // no rigid schema like SQL
+db.users.insertMany([{name: "Hero"}, {name: "Don"}])
+db.users.insertMany([{name: "John", age: 18, hobbies: ["Swimming", "Bowling"], address: {country: "USA", city: "Washington DC"}}, {name: "Johny", age: 26, hobbies: ["Weight Lifting", "Bowling"], address: {country: "USA", city: "Colorado"}}])
+
+// <==================================Basic Query Commands=================================>
+db.users.find({})
+db.users.find({}).limit(2)
+db.users.find({}).sort({name: -1}).limit(2) // -1 descending, 1 ascending
+db.users.find({}).sort({age: -1, name: -1}).limit(2)
+db.users.find({}).sort({age: -1, name: -1}).skip(1).limit(2)
+db.users.find({name:"Trishan Wagle"})
+db.users.find({age: 18})
+db.users.find({}, {name: 1, _id: 0})
+db.users.find({}, {password: 0})
+
+// <==================================Complex Query Commands=================================>
+db.users.find({name: { $eq: "Trishan Wagle" }})
+db.users.find({name: { $ne: "Trishan Wagle" }})
+db.users.find({age: { $gt: 18 }})
+db.users.find({age: { $gte: 18 }})
+db.users.find({age: { $lt: 18 }})
+db.users.find({age: { $lte: 18 }})
+db.users.find({name: { $in: ["Trishan Wagle", "John"] }})
+db.users.find({name: { $nin: ["Trishan Wagle", "John"] }})
+db.users.find({age: { $exists: true }}) // just checks the key
+db.users.find({age: { $exists: false }})
+db.users.find({ age: {$gte: 18, $lte: 20} })
+db.users.find({ age: {$gte: 18, $lte: 20}, name: "John Doe" }) // And Query
+db.users.find({ $and: [ {age: {$gte: 18, $lte: 20}}, {name: "John Doe"} ] })
+db.users.find({ $or: [ {age: {$gte: 18, $lte: 20}}, {name: "John Doe"} ] })
+db.users.find({ age: { $not: { $lte: 20 } } })
+db.users.find({ $expr: { $gt: ["$debt", "$balance"] } }) // to compare two properties, $ to access column
+db.users.find({"address.country" : "Nepal"}) // for nested objects
+db.users.findOne({age: {$gte: 18}})
+db.users.countDocuments({age: {$gte: 18}})
+
+// <==================================Update Commands=================================>
+db.users.updateOne({name: "Trishan Wagle"}, { $set: {name: "Trishan"} })
+db.users.updateOne({ _id: ObjectId('664d6f46c4032de2d8fb3bff') }, { $inc: { balance: 20 } })
+db.users.updateOne({ _id: ObjectId('664d6f46c4032de2d8fb3bff') }, { $inc: { balance: -10 } })
+db.users.updateOne({ _id: ObjectId('664d6f46c4032de2d8fb3bff') }, { $rename: { balance: "totalBlc" } }) // rename the field
+db.users.updateOne({ _id: ObjectId('664d6f46c4032de2d8fb3bff') }, { $unset: { debt: "" } }) // delete the field
+db.users.updateOne({ _id: ObjectId('664c1d2a36042f3df6ef28a4') }, { $push: { hobbies: "sdsdfsdf" } }) // add the element to the array
+db.users.updateOne({ _id: ObjectId('664c1d2a36042f3df6ef28a4') }, { $pull: { hobbies: "sdsdfsdf" } }) // remove the element from the array
+db.users.updateMany({address: {exists: true}}, {$unset: {address: ""}})
+db.users.replaceOne({age: 20}, {name: "Hacker"}) // finds the data with age:20 and replaces entire data to what we pass
+
+
+// <==================================Delete Commands=================================>
+db.users.deleteOne({name: "Trishan"})
+db.users.deleteMany({age: {$exists: false}})
+
+// <==================================Indexes=================================>
+-> data structures that optimize data retrieval speed in MongoDB
+-> indexes store a fraction of data in a more searchable format
+-> it requires space, and overindexing can lead to performance issues so just index fields which are mostly used
+-> no need to index in smaller collections
+-> when we know that more than 60% data is being returned, don't use indexes
+db.users.getIndexes() // _id as index by default by MongoDB
+db.users.find({age: 18}).explain("executionStats") // examined 8 docs, returned 2
+db.users.createIndex({age: 1}) // storing indexes in ascending order
+db.users.createIndex({age: -1}) // storing indexes in descending order
+db.users.find({age: 18}).explain("executionStats") // examined 2 docs, returned 2
+db.users.dropIndex({age: 1})
+db.users.dropIndex("index_name")
+
+// <==================================Aggregation Pipeline=================================>
