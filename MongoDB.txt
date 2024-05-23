@@ -22,7 +22,7 @@ db.users.find({}).sort({age: -1, name: -1}).limit(2)
 db.users.find({}).sort({age: -1, name: -1}).skip(1).limit(2)
 db.users.find({name:"Trishan Wagle"})
 db.users.find({age: 18})
-db.users.find({}, {name: 1, _id: 0})
+db.users.find({}, {name: 1, _id: 0}) // Projection - include and exclude some fields
 db.users.find({}, {password: 0})
 
 // <==================================Complex Query Commands=================================>
@@ -77,3 +77,70 @@ db.users.dropIndex({age: 1})
 db.users.dropIndex("index_name")
 
 // <==================================Aggregation Pipeline=================================>
+-> like chaining methods in JS
+-> aggregation is the process of performing transformations on documents and combining them to produce computed results
+-> consists of multiple pipeline  stages, each performing a specific operation on the input data (each step)
+
+// <==================================$match=================================>
+-> $match - similar to .find()
+db.users.aggregate([
+    { $match: { name: "Trishan" } }
+])
+db.users.aggregate([
+    { $match: { age: { $gte: 18 } } }
+])
+
+// <==================================$group=================================>
+-> $group - groups documents by specified fields and performs aggregate operations on grouped data
+-> similar to reduce in JS
+{ $group: {
+    _id: <expression> // group key
+    <field1>: {<acc1> : <expr1>}
+} }
+db.users.aggregate([
+    { $group: { _id: { name: "$name" }, total: { $sum: 1 } } } // here sum: 1 means how many data of _id is repeated
+]) // gives the count of common $name data in DB
+
+db.users.aggregate([
+    { $group: { _id: { name: "$name" }, total: { $sum: '$age' } } }
+]) // gives the total age of common $name data in DB, $sum, $avg, 
+
+db.users.aggregate([
+    {
+        $match: {age: {$gte: 18}}
+    },
+    {
+        $group: {
+            _id: "$name",
+            totalAge: {
+                $sum: "$age"
+            }
+        }
+    }
+])
+
+// <==================================$sort=================================>
+db.users.aggregate([
+    { 
+        $match: { age: { $gte: 18 } } 
+    },
+    {
+        $sort: { name: 1, age: -1 }
+    }
+])
+
+// <==================================$project=================================>
+db.users.aggregate([
+    { 
+        $match: { age: { $gte: 18 } } 
+    },
+    {
+        $sort: { name: 1, age: -1 }
+    },
+    {
+        $project: { 
+            password: 0,
+            newAge: { $multiply: ["$age", 0.8] } // we can use all $expr operations
+        }
+    }
+])
